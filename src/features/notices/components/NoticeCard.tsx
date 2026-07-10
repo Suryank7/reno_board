@@ -1,164 +1,96 @@
-// ─────────────────────────────────────────────────────────────
-// NoticeCard Component
-// Displays a single notice as a responsive card with
-// category badges, priority indicators, and action buttons.
-// ─────────────────────────────────────────────────────────────
-
-import { motion } from "framer-motion";
-import Image from "next/image";
+import { Calendar, Edit2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import {
-  Calendar,
-  Edit3,
-  Trash2,
-  AlertTriangle,
-  BookOpen,
-  CalendarDays,
-  Megaphone,
-  ImageIcon,
-} from "lucide-react";
-import type { Notice } from "@/features/notices/services/notice-service";
+import { motion, Variants } from "framer-motion";
 
 interface NoticeCardProps {
-  notice: Notice;
-  onEdit: (notice: Notice) => void;
-  onDelete: (notice: Notice) => void;
-  isDeleting: boolean;
+  notice: {
+    id: string;
+    title: string;
+    body: string;
+    category: "EXAM" | "EVENT" | "GENERAL";
+    priority: "URGENT" | "NORMAL";
+    publishDate: Date;
+  };
+  onClick?: () => void;
+  onEdit?: (e: React.MouseEvent) => void;
+  onDelete?: (e: React.MouseEvent) => void;
 }
 
-const CATEGORY_CONFIG = {
-  EXAM: {
-    label: "Exam",
-    icon: BookOpen,
-    className: "bg-amber-50 text-amber-700 border-amber-200",
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: "spring", stiffness: 300, damping: 24 } 
   },
-  EVENT: {
-    label: "Event",
-    icon: CalendarDays,
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  GENERAL: {
-    label: "General",
-    icon: Megaphone,
-    className: "bg-slate-50 text-slate-600 border-slate-200",
-  },
-} as const;
+};
 
-export function NoticeCard({
-  notice,
-  onEdit,
-  onDelete,
-  isDeleting,
-}: NoticeCardProps) {
+export function NoticeCard({ notice, onClick, onEdit, onDelete }: NoticeCardProps) {
   const isUrgent = notice.priority === "URGENT";
-  const categoryConfig = CATEGORY_CONFIG[notice.category];
-  const CategoryIcon = categoryConfig.icon;
-
-  const formattedDate = (() => {
-    try {
-      return format(new Date(notice.publishDate), "MMM dd, yyyy");
-    } catch {
-      return "Invalid date";
-    }
-  })();
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      whileHover={{ y: -2 }}
-      className={`group relative overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 hover:shadow-lg ${
-        isUrgent
-          ? "border-rose-200 ring-1 ring-rose-100"
-          : "border-slate-200 hover:border-indigo-200"
-      } ${isDeleting ? "pointer-events-none opacity-50" : ""}`}
+      variants={itemVariants}
+      onClick={onClick}
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-soft dark:shadow-none transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] cursor-pointer group relative"
     >
-      {/* Urgent top border accent */}
-      {isUrgent && (
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-rose-400 to-rose-500" />
-      )}
+      {/* ── Top Row (Category & Priority) ── */}
+      <div className="flex justify-between items-start mb-3">
+        <span className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider border border-slate-100 dark:border-slate-700">
+          {notice.category}
+        </span>
 
-      {/* Image (if present) */}
-      {notice.image && (
-        <div className="relative h-40 w-full overflow-hidden bg-slate-100">
-          <Image
-            src={notice.image}
-            alt={notice.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        </div>
-      )}
-
-      <div className={`p-5 ${isUrgent ? "pt-6" : ""}`}>
-        {/* Top row: badges */}
-        <div className="mb-3 flex items-center gap-2">
-          {/* Priority Badge */}
-          {isUrgent && (
-            <span className="urgent-badge inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700 border border-rose-200">
-              <AlertTriangle className="h-3 w-3" />
-              Urgent
+        {isUrgent && (
+          <div className="flex items-center gap-1.5 bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
             </span>
-          )}
-
-          {/* Category Badge */}
-          <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${categoryConfig.className}`}
-          >
-            <CategoryIcon className="h-3 w-3" />
-            {categoryConfig.label}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 className="mb-2 text-base font-semibold leading-snug text-slate-900 line-clamp-2">
-          {notice.title}
-        </h3>
-
-        {/* Body */}
-        <p className="mb-4 text-sm leading-relaxed text-slate-600 line-clamp-3">
-          {notice.body}
-        </p>
-
-        {/* Footer: date + actions */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-          {/* Date */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Calendar className="h-3.5 w-3.5" />
-            <time dateTime={notice.publishDate}>{formattedDate}</time>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <button
-              onClick={() => onEdit(notice)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500"
-              aria-label={`Edit notice: ${notice.title}`}
-            >
-              <Edit3 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => onDelete(notice)}
-              disabled={isDeleting}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-rose-500 disabled:opacity-50"
-              aria-label={`Delete notice: ${notice.title}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* No image indicator */}
-        {!notice.image && (
-          <div className="absolute right-4 top-4 text-slate-200">
-            <ImageIcon className="h-5 w-5" />
+            URGENT
           </div>
         )}
+      </div>
+
+      {/* Action Buttons (Hover) */}
+      <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          onClick={onEdit} 
+          className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
+        >
+          <Edit2 className="w-3.5 h-3.5" />
+        </button>
+        <button 
+          onClick={onDelete} 
+          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* ── Body (Title & Text) ── */}
+      {/* ── Body (Title & Text) ── */}
+      <h3 className="text-slate-900 dark:text-slate-100 font-bold line-clamp-2 leading-snug mb-1">
+        {notice.title}
+      </h3>
+      <p className="text-slate-500 dark:text-slate-400 line-clamp-2 text-sm leading-relaxed mb-4">
+        {notice.body}
+      </p>
+
+      {/* ── Footer Row ── */}
+      <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50 dark:border-slate-800">
+        <div className="flex items-center gap-2">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 dark:bg-slate-700 text-[9px] font-bold text-white shadow-sm">
+            AD
+          </div>
+          <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">Admin</span>
+        </div>
+
+        <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
+          <Calendar className="h-3 w-3" />
+          <time dateTime={notice.publishDate.toISOString()} className="text-[11px]">
+            {format(notice.publishDate, "MMM d")}
+          </time>
+        </div>
       </div>
     </motion.div>
   );

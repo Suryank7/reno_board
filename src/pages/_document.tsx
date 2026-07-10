@@ -34,7 +34,7 @@ export default function Document() {
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 antialiased transition-colors">
         <Main />
         <NextScript />
       </body>

@@ -1,170 +1,67 @@
-// ─────────────────────────────────────────────────────────────
-// API Route: /api/notices/[id]
-// Handles: GET (single), PUT (update), DELETE (remove)
-// ─────────────────────────────────────────────────────────────
-
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { noticeSchema } from "@/validators/notice.schema";
 
-type ApiResponse<T = unknown> = {
-  success: boolean;
-  data?: T;
-  error?: string;
-  errors?: Record<string, string[]>;
-};
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
-  const { id } = req.query;
-
-  if (!id || typeof id !== "string") {
-    return res.status(400).json({
-      success: false,
-      error: "Notice ID is required",
-    });
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === "GET") {
+    return handleGet(req, res);
+  } else if (req.method === "PUT") {
+    return handlePut(req, res);
+  } else if (req.method === "DELETE") {
+    return handleDelete(req, res);
   }
-
-  switch (req.method) {
-    case "GET":
-      return handleGet(id, res);
-    case "PUT":
-    case "PATCH":
-      return handleUpdate(id, req, res);
-    case "DELETE":
-      return handleDelete(id, res);
-    default:
-      res.setHeader("Allow", ["GET", "PUT", "PATCH", "DELETE"]);
-      return res.status(405).json({
-        success: false,
-        error: `Method ${req.method} not allowed`,
-      });
-  }
+  return res.status(405).json({ message: "Method not allowed" });
 }
 
-// ── GET /api/notices/[id] ─────────────────────────────────────
-async function handleGet(
-  id: string,
-  res: NextApiResponse<ApiResponse>
-) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const { id } = req.query;
     const notice = await prisma.notice.findUnique({
-      where: { id },
+      where: { id: String(id) },
     });
-
+    
     if (!notice) {
-      return res.status(404).json({
-        success: false,
-        error: "Notice not found",
-      });
+      return res.status(404).json({ message: "Notice not found" });
     }
-
-    return res.status(200).json({
-      success: true,
-      data: notice,
-    });
+    return res.status(200).json(notice);
   } catch (error) {
-    console.error(`[GET /api/notices/${id}] Error:`, error);
-    return res.status(500).json({
-      success: false,
-      error: "Failed to fetch notice",
-    });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to fetch notice" });
   }
 }
 
-// ── PUT /api/notices/[id] ─────────────────────────────────────
-// Updates an existing notice after server-side Zod validation.
-async function handleUpdate(
-  id: string,
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
+async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Check if notice exists
-    const existing = await prisma.notice.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return res.status(404).json({
-        success: false,
-        error: "Notice not found",
-      });
-    }
-
-    // Server-side validation with Zod
-    const parseResult = noticeSchema.safeParse(req.body);
-
-    if (!parseResult.success) {
-      const fieldErrors = parseResult.error.flatten().fieldErrors;
-      return res.status(400).json({
-        success: false,
-        error: "Validation failed",
-        errors: fieldErrors as Record<string, string[]>,
-      });
-    }
-
-    const { title, body, category, priority, publishDate, image } =
-      parseResult.data;
-
-    const updatedNotice = await prisma.notice.update({
-      where: { id },
+    const { id } = req.query;
+    const data = noticeSchema.parse(req.body);
+    
+    const notice = await prisma.notice.update({
+      where: { id: String(id) },
       data: {
-        title,
-        body,
-        category,
-        priority,
-        publishDate: new Date(publishDate),
-        image: image || null,
+        title: data.title,
+        body: data.body,
+        category: data.category,
+        priority: data.priority,
+        publishDate: new Date(data.publishDate),
+        image: data.image || null,
       },
     });
-
-    return res.status(200).json({
-      success: true,
-      data: updatedNotice,
-    });
+    return res.status(200).json(notice);
   } catch (error) {
-    console.error(`[PUT /api/notices/${id}] Error:`, error);
-    return res.status(500).json({
-      success: false,
-      error: "Failed to update notice",
-    });
+    console.error(error);
+    return res.status(400).json({ message: "Invalid data", error });
   }
 }
 
-// ── DELETE /api/notices/[id] ──────────────────────────────────
-async function handleDelete(
-  id: string,
-  res: NextApiResponse<ApiResponse>
-) {
+async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Check if notice exists
-    const existing = await prisma.notice.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return res.status(404).json({
-        success: false,
-        error: "Notice not found",
-      });
-    }
-
+    const { id } = req.query;
     await prisma.notice.delete({
-      where: { id },
+      where: { id: String(id) },
     });
-
-    return res.status(200).json({
-      success: true,
-      data: { id },
-    });
+    return res.status(204).end();
   } catch (error) {
-    console.error(`[DELETE /api/notices/${id}] Error:`, error);
-    return res.status(500).json({
-      success: false,
-      error: "Failed to delete notice",
-    });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to delete notice" });
   }
 }

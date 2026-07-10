@@ -1,20 +1,11 @@
-// ─────────────────────────────────────────────────────────────
-// Reno Enterprise Notice Management System — Prisma Schema
-// Provider: MySQL (TiDB Cloud)
-// ─────────────────────────────────────────────────────────────
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-// ─────────────────────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────────────────────
 
 enum Category {
   EXAM
@@ -22,34 +13,19 @@ enum Category {
   GENERAL
 }
 
-// IMPORTANT: MySQL stores enums as 1-indexed integers by declaration order.
-// URGENT is declared first (index 1), NORMAL second (index 2).
-// This means ORDER BY priority ASC natively puts URGENT before NORMAL
-// without any application-level sorting.
 enum Priority {
   URGENT
   NORMAL
 }
 
-// ─────────────────────────────────────────────────────────────
-// Models
-// ─────────────────────────────────────────────────────────────
-
 model Notice {
   id          String   @id @default(cuid())
-  title       String   @db.VarChar(255)
+  title       String
   body        String   @db.Text
-  category    Category @default(GENERAL)
+  category    Category
   priority    Priority @default(NORMAL)
   publishDate DateTime
-  image       String?  @db.VarChar(500)
-
-  // Enterprise-ready metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Composite index for the primary query pattern:
-  // Sort by priority (URGENT first), then by publishDate (newest first)
-  @@index([priority, publishDate])
-  @@map("notices")
+  image       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

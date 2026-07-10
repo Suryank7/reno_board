@@ -1,79 +1,73 @@
-# Reno Enterprise Notice Management System
+# Enterprise Notice Board
 
-## Overview
+A highly premium, interactive Kanban-style notice board built with modern enterprise B2B SaaS architecture. It emphasizes performance, real-time interactivity, and a bespoke, whitespace-heavy aesthetic inspired by Linear and RoomGI.
 
-This is an Enterprise Notice Management System built as a module for Reno Platforms. It is a production-ready application designed with scale, maintainability, and enterprise UX in mind.
+## 🚀 Tech Stack
 
-The system supports full Create, Read, Update, and Delete (CRUD) operations for institutional notices, featuring a polished interface inspired by Reno Platforms' design language.
+- **Framework**: [Next.js](https://nextjs.org/) (Pages Router)
+- **Language**: TypeScript (Strict Mode)
+- **Database**: [TiDB Serverless](https://www.pingcap.com/tidb-serverless/) (MySQL)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI Primitives**: [Radix UI](https://www.radix-ui.com/)
+- **Animation**: [Framer Motion](https://www.framer.com/motion/)
+- **Data Fetching**: [SWR](https://swr.vercel.app/)
+- **Form Handling**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
+- **Toast Notifications**: [Sonner](https://sonner.emilkowal.ski/)
 
-## Architecture & Engineering Decisions
+## ✨ Key Features
 
-*   **Framework**: Next.js Pages Router for reliable server-side API execution and straightforward routing.
-*   **Database Setup**: TiDB Cloud (MySQL) with Prisma ORM.
-*   **Native Ordering**: The `Priority` enum in Prisma is ordered specifically with `URGENT` first. This enables `orderBy: { priority: "asc" }` to natively sort urgent notices to the top at the database level, avoiding costly browser-side array sorting.
-*   **Validation**: Used a shared Zod schema (`notice.schema.ts`) for both client-side form validation (via React Hook Form) and strict server-side payload validation in the API routes.
-*   **Feature-First Architecture**: Instead of a flat `components/` directory, domain logic is grouped under `src/features/notices/` (components, hooks, services). This mimics large-scale enterprise patterns.
-*   **Aesthetics**: Glassmorphic elements, Framer Motion transitions, and a dot-grid background inspired by modern SaaS applications (Vercel, Linear, Reno Platforms).
+1. **Kanban Shell**: Horizontal-scrolling canvas with collapsing/expanding column state architecture (`w-[320px]` down to `w-14` vertical side-tabs).
+2. **Premium Micro-interactions**: Smooth Framer Motion staggering entry animations and physically accurate hover lift (`hover:-translate-y-1`). 
+3. **Bespoke UI Components**: Bypassed generic library defaults for a custom-engineered `NoticeCard` and `NoticeModal`. Features include "pinging" URGENT indicator dots and diffuse shadows (`shadow-soft`).
+4. **Universal Dark Mode**: Seamless, bespoke dark mode toggle using `next-themes` mapped dynamically across the entire application interface.
+5. **Interactive Cards**: Embedded intuitive inline CRUD capabilities—hover to Edit or Delete with optimistic UI updates.
+6. **Global Search Engine**: Context-driven top bar search instantly filters notices across all categories simultaneously.
+7. **Notice Detail Engine**: Expansive un-editable view modals for comprehensive reading experience without layout shifting.
+8. **Enterprise Validation**: Strict Zod schemas validating both client-side forms and server-side API payloads.
+9. **Real-time Client**: Configured with SWR for optimistic UI updates and instant fetching.
 
-## Tech Stack
+## 🛠️ Local Development
 
-| Category | Technology |
-| :--- | :--- |
-| **Framework** | Next.js (Pages Router), React |
-| **Language** | Strict TypeScript |
-| **Database** | TiDB Cloud (MySQL), Prisma ORM |
-| **Styling** | Tailwind CSS v4, Framer Motion |
-| **Components** | shadcn/ui, Radix UI, Lucide React |
-| **Forms** | React Hook Form, Zod |
-| **Images** | Cloudinary (Signed Unsigned Upload) |
-| **Testing** | Playwright (E2E) |
+### Prerequisites
+- Node.js 18+
+- A TiDB Cloud Serverless account (MySQL)
 
-## Local Setup Instructions
+### Setup Instructions
 
-1.  **Clone and Install**:
-    ```bash
-    git clone <repository-url>
-    cd reno-notice-board
-    npm install
-    ```
+1. **Clone the repository and install dependencies:**
+   ```bash
+   npm install
+   ```
 
-2.  **Environment Variables**:
-    Copy the template to create your local `.env` file:
-    ```bash
-    cp .env.example .env
-    ```
-    *Add your TiDB Cloud connection string and Cloudinary credentials to the `.env` file.*
+2. **Configure Environment Variables:**
+   Copy the `.env.example` to `.env` and insert your TiDB connection string.
+   ```bash
+   # .env
+   DATABASE_URL="mysql://username:password@gateway01...tidbcloud.com:4000/notice_board?sslaccept=strict"
+   ```
 
-3.  **Database Sync**:
-    Push the Prisma schema to your TiDB database:
-    ```bash
-    npx prisma db push
-    npx prisma generate
-    ```
+3. **Push the Schema:**
+   Sync the Prisma schema to your TiDB database.
+   ```bash
+   npx prisma db push
+   ```
+   *(Note: This creates the tables without requiring a migration history)*
 
-4.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. **Run the Development Server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Testing
+## 🚢 Deployment (Vercel)
 
-Run the End-to-End Playwright test flow:
-```bash
-npx playwright test
-```
+This project is fully optimized for Vercel deployment out-of-the-box.
 
-## Future Improvements Roadmap
+1. Push your code to GitHub.
+2. Import the repository in Vercel.
+3. In the Vercel **Environment Variables** settings, add your `DATABASE_URL`.
+4. Deploy! Vercel will automatically run `npm run build` which invokes the `prisma generate` post-install hook.
 
-*   **Role-Based Access Control (RBAC)**: Implement NextAuth.js to restrict notice creation to Admins/Faculty, while Students have read-only access.
-*   **Audit Logs**: Track who created, edited, or deleted a notice.
-*   **Scheduled Publishing**: Allow users to draft notices and set a future visibility date via cron jobs.
-*   **Real-time Updates**: Implement WebSockets or Server-Sent Events to push urgent notices to connected clients instantly.
-
-## AI Usage Disclosure
-
-As a Senior Staff Software Engineer, I utilized AI (Claude 3.5 Sonnet / Gemini) as a pair-programming partner during development. 
-
-*   **AI was used for**: Scaffolding repetitive boilerplate (shadcn UI setups), generating the Zod validation schemas, and optimizing the Prisma schema for native MySQL ordering.
-*   **Manual direction**: All architectural decisions (feature-first directory layout, shared validation layers, database sorting logic), code reviews, UX/UI aesthetic direction, and engineering trade-off evaluations were driven manually.
+---
+*Built with strict enterprise UI/UX standards.*
