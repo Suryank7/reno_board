@@ -7,7 +7,7 @@ import { TopBar } from "@/components/layout/TopBar";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light">
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <SearchProvider>
         <TopBar />
         <Component {...pageProps} />

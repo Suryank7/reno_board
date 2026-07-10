@@ -7,7 +7,7 @@ import { Html, Head, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" suppressHydrationWarning>
       <Head>
         {/* SEO Meta */}
         <meta charSet="utf-8" />
@@ -34,7 +34,7 @@ export default function Document() {
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 antialiased transition-colors">
+      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 antialiased transition-colors" suppressHydrationWarning>
         <Main />
         <NextScript />
       </body>
